@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { BagIcon, LeafIcon } from "./Icons";
 
-export default function ProductCard({ product }) {
+// Matches a typical grid: 2 columns on mobile, 3 on tablet, 4 on desktop
+const CARD_SIZES = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw";
+
+export default function ProductCard({ product, priority = false }) {
   const { addItem } = useCart();
   const media = product.media?.[0] || product.images?.[0];
 
@@ -19,8 +22,12 @@ export default function ProductCard({ product }) {
     : 0;
 
   return (
-    <div className="card-hover group relative flex flex-col overflow-hidden rounded-xl2 border border-gold/15 bg-white shadow-card">
-      <Link href={`/products/${product.slug}`} className="relative block aspect-square overflow-hidden bg-champagne">
+    <div className="group flex flex-col">
+      {/* Image */}
+      <Link
+        href={`/products/${product.slug}`}
+        className="relative block aspect-square overflow-hidden bg-champagne"
+      >
         {image ? (
           mediaType === "video" ? (
             <video
@@ -29,59 +36,63 @@ export default function ProductCard({ product }) {
               autoPlay
               loop
               playsInline
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              preload="metadata"
+              className="h-full w-full object-cover"
             />
           ) : (
             <Image
               src={image}
               alt={product.name}
               fill
-              sizes="(max-width: 768px) 50vw, 25vw"
+              sizes={CARD_SIZES}
+              quality={85}
+              priority={priority}
               className="object-cover transition duration-500 group-hover:scale-105"
             />
           )
         ) : (
           <div className="flex h-full items-center justify-center text-forest/30">
-            <LeafIcon className="h-12 w-12" />
+            <LeafIcon className="h-10 w-10" />
           </div>
         )}
 
-        {outOfStock && (
-          <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ivory">
-            Out of Stock
+        {outOfStock ? (
+          <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-1.5 text-center text-xs font-semibold text-ivory">
+            Out of stock
           </span>
-        )}
-
-        {!outOfStock && hasDiscount && (
-          <span className="absolute right-3 top-3 rounded-full bg-terracotta px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ivory">
-            {discountPercent}% OFF
-          </span>
+        ) : (
+          hasDiscount && (
+            <span className="absolute left-2 top-2 bg-terracotta px-2.5 py-0.5 text-xs font-semibold text-ivory">
+              {discountPercent}% off
+            </span>
+          )
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-4">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-gold-dark">
-          {product.category?.name}
-        </p>
+      {/* Details */}
+      <div className="mt-3 flex flex-1 flex-col">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="mt-1 line-clamp-2 min-h-[2.5rem] font-display text-base font-semibold leading-snug text-ink hover:text-forest">
+          <h3 className="line-clamp-2 text-sm font-bold leading-5 text-ink hover:text-forest">
             {product.name}
           </h3>
         </Link>
-        <div className="mt-auto flex items-center justify-between pt-4">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-lg font-bold text-forest">₹{product.price}</span>
-              {hasDiscount && (
-                <span className="text-xs text-muted line-through">₹{product.compareAtPrice}</span>
-              )}
-            </div>
-            <p className="text-[11px] text-muted">{product.unit}</p>
+
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <div className="flex items-baseline gap-2">
+            <span className="font-sans text-base font-bold tabular-nums text-forest">
+              ₹ {product.price}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs font-medium tabular-nums text-muted line-through">
+                ₹{product.compareAtPrice}
+              </span>
+            )}
           </div>
+
           <button
             onClick={() => addItem(product, 1)}
             disabled={outOfStock}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-forest text-ivory transition hover:bg-forest-light disabled:cursor-not-allowed disabled:bg-muted/40"
+            className="flex h-9 w-9 shrink-0 items-center justify-center bg-forest text-ivory transition hover:bg-forest-light disabled:cursor-not-allowed disabled:bg-muted/40"
             aria-label="Add to cart"
           >
             <BagIcon className="h-4 w-4" />

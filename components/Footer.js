@@ -27,17 +27,17 @@ function InstagramIcon({ className }) {
 }
 
 export default function Footer({ settings }) {
-  const storeName = settings?.storeName || "Ivalin Naturals";
-  const phone = settings?.phone || "+91 75503 99314";
-  const whatsapp = settings?.whatsapp || "917550399314";
+  const storeName = settings?.storeName || "Ivalin Care";
+  const phone = settings?.phone || "+91 84284 04011";
+  const whatsapp = settings?.whatsapp || "918428404011";
   const email = settings?.email || "ivalincare@gmail.com";
   const address =
     settings?.address ||
-    "14, Dhamothira Swamy Layout, Neelikonam Palayam, ESI Hospital (opp), Singanallur, Coimbatore - 641033";
+    "Ivalin, Singanallore, Coimbatore - 641033";
 
   const instagram =
     settings?.instagram ||
-    "https://www.instagram.com/ivalin_naturals?rpxt=MWNoODZqYmM4Yzc3cQ==";
+    "https://www.instagram.com/ivalin_naturals?dlrf=NXQ4b24xdXhtM3Nu";
 
   const youtube = settings?.youtube;
 

@@ -7,6 +7,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const AUTO_SCROLL_MS = 4000;
 const SWIPE_THRESHOLD = 50; // px
 
+// Main image: sharp. Thumbnails: tiny, so low quality is invisible and loads fast.
+const MAIN_QUALITY = 90;
+const MAIN_SIZES = "(max-width: 1024px) 100vw, 50vw";
+
 export default function ProductGallery({ media, productName }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -16,6 +20,10 @@ export default function ProductGallery({ media, productName }) {
   const active = media[activeIndex];
   const isVideo = (active?.type || active?.mediaType) === "video";
   const hasMultiple = media.length > 1;
+
+  // The upcoming image is rendered invisibly so it is already loaded when shown
+  const nextItem = hasMultiple ? media[(activeIndex + 1) % media.length] : null;
+  const nextIsVideo = (nextItem?.type || nextItem?.mediaType) === "video";
 
   const goTo = useCallback(
     (index) => {
@@ -61,7 +69,7 @@ export default function ProductGallery({ media, productName }) {
   return (
     <div>
       <div
-        className="group relative aspect-square touch-pan-y select-none overflow-hidden rounded-xl2 bg-champagne shadow-card"
+        className="group relative aspect-square touch-pan-y select-none overflow-hidden bg-champagne"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
@@ -76,17 +84,35 @@ export default function ProductGallery({ media, productName }) {
             autoPlay
             muted
             loop
+            playsInline
+            preload="metadata"
           />
         ) : (
           <Image
             key={active.url}
             src={active.url}
             alt={productName}
-            width={800}
-            height={800}
-            className="h-full w-full object-cover"
-            priority
+            fill
+            sizes={MAIN_SIZES}
+            quality={MAIN_QUALITY}
+            priority={activeIndex === 0}
+            className="object-cover"
           />
+        )}
+
+        {/* Invisible preload of the next image for instant switching */}
+        {nextItem && !nextIsVideo && (
+          <div className="pointer-events-none absolute inset-0 opacity-0" aria-hidden="true">
+            <Image
+              src={nextItem.url}
+              alt=""
+              fill
+              sizes={MAIN_SIZES}
+              quality={MAIN_QUALITY}
+              loading="eager"
+              className="object-cover"
+            />
+          </div>
         )}
 
         {hasMultiple && (
@@ -95,7 +121,7 @@ export default function ProductGallery({ media, productName }) {
               type="button"
               onClick={goPrev}
               aria-label="Previous image"
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-forest opacity-0 shadow-md backdrop-blur transition hover:bg-white group-hover:opacity-100 md:opacity-0"
+              className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-forest opacity-0 backdrop-blur transition hover:bg-white group-hover:opacity-100 md:opacity-0"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -103,17 +129,17 @@ export default function ProductGallery({ media, productName }) {
               type="button"
               onClick={goNext}
               aria-label="Next image"
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-forest opacity-0 shadow-md backdrop-blur transition hover:bg-white group-hover:opacity-100 md:opacity-0"
+              className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-white/80 text-forest opacity-0 backdrop-blur transition hover:bg-white group-hover:opacity-100 md:opacity-0"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
 
             {/* Dots (visible on mobile where hover arrows don't apply) */}
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 md:hidden">
+            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 md:hidden">
               {media.map((_, index) => (
                 <span
                   key={index}
-                  className={`h-1.5 w-1.5 rounded-full transition ${
+                  className={`h-1.5 w-1.5 transition ${
                     index === activeIndex ? "bg-forest" : "bg-white/70"
                   }`}
                 />
@@ -132,14 +158,28 @@ export default function ProductGallery({ media, productName }) {
                 key={item.publicId || index}
                 ref={(el) => (thumbRefs.current[index] = el)}
                 onClick={() => goTo(index)}
-                className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition ${
+                aria-label={`Show image ${index + 1}`}
+                className={`relative h-16 w-16 shrink-0 overflow-hidden border-2 transition ${
                   index === activeIndex ? "border-forest" : "border-transparent"
                 }`}
               >
                 {itemIsVideo ? (
-                  <video src={item.url} className="h-full w-full object-cover" muted />
+                  <video
+                    src={item.url}
+                    className="h-full w-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
                 ) : (
-                  <Image src={item.url} alt={`${productName} ${index + 1}`} fill className="object-cover" />
+                  <Image
+                    src={item.url}
+                    alt={`${productName} ${index + 1}`}
+                    fill
+                    sizes="64px"
+                    quality={60}
+                    className="object-cover"
+                  />
                 )}
               </button>
             );

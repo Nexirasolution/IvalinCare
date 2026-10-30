@@ -15,7 +15,6 @@ const LINKS = [
 
 function ShippingMarquee({ settings }) {
   const freeShipping = settings?.freeShipping ?? 999;
-  // const shippingFee = settings?.shippingFee ?? 49;
 
   const messages = [
     `🚚 FREE SHIPPING on orders above ₹${freeShipping}`,
@@ -27,7 +26,7 @@ function ShippingMarquee({ settings }) {
   const track = [...messages, ...messages];
 
   return (
-    <div className="relative overflow-hidden bg-rose py-2 text-ivory">
+    <div className="relative flex h-9 items-center overflow-hidden bg-rose text-ivory">
       <div className="marquee-track flex w-max items-center gap-12 whitespace-nowrap px-4 text-xs font-semibold tracking-wide md:text-sm">
         {track.map((msg, idx) => (
           <span key={idx} className="flex items-center gap-2">
@@ -63,13 +62,6 @@ export default function Navbar({ settings }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const storeName = settings?.storeName || "Ivalin Naturals";
-  const storeNameWords = storeName.split(" ");
-  const [brand, tagline] =
-    storeNameWords.length > 2
-      ? [storeNameWords.slice(0, 2).join(" "), storeNameWords.slice(2).join(" ")]
-      : storeName.includes(" ")
-      ? [storeNameWords[0], storeNameWords.slice(1).join(" ")]
-      : [storeName, ""];
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -83,30 +75,21 @@ export default function Navbar({ settings }) {
 
   return (
     <>
+      {/* Fixed wrapper: marquee + header stay pinned to the top of the screen */}
+      <div className="fixed inset-x-0 top-0 z-50">
       <ShippingMarquee settings={settings} />
 
-      <header className="sticky top-0 z-40 border-b border-gold/20 bg-ivory/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:px-8">
-          <Link href="/" className="flex items-center gap-3">
+      <header className="border-b border-gold/20 bg-ivory/90 backdrop-blur-md">
+        <div className="mx-auto flex h-28 max-w-7xl items-center justify-between px-5 md:px-8">
+          <Link href="/" className="flex shrink-0 items-center" aria-label={storeName}>
             <Image
               src="/images/logo.png"
               alt={storeName}
-              width={55}
-              height={55}
+              width={200}
+              height={200}
               priority
-              className="h-12 w-12 rounded-full object-contain"
+              className="h-24 w-24 rounded-full object-contain"
             />
-
-            <div className="leading-tight">
-              <h1 className="font-display text-xl font-bold text-forest">
-                {brand}
-              </h1>
-              {tagline && (
-                <p className="text-xs uppercase tracking-[0.25em] text-muted">
-                  {tagline}
-                </p>
-              )}
-            </div>
           </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
@@ -121,7 +104,7 @@ export default function Navbar({ settings }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {/* Desktop expanding search */}
             <div className="hidden items-center md:flex">
               {searchOpen ? (
@@ -242,6 +225,10 @@ export default function Navbar({ settings }) {
           </nav>
         )}
       </header>
+      </div>
+
+      {/* Spacer so page content starts below the fixed navbar (marquee 2.25rem + header 7rem + 1px border) */}
+      <div aria-hidden="true" className="h-[calc(2.25rem+7rem+1px)]" />
     </>
   );
 }

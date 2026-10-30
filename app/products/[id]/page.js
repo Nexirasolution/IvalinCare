@@ -90,9 +90,11 @@ export default async function ProductDetailPage({ params }) {
             <h1 className="mt-2 font-display text-3xl font-bold text-forest md:text-4xl">{product.name}</h1>
 
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-display text-3xl font-bold text-forest">₹{product.price}</span>
+              <span className="font-sans text-3xl font-semibold tabular-nums tracking-tight text-forest">
+                ₹ {product.price}
+              </span>
               {product.compareAtPrice > product.price && (
-                <span className="text-base text-muted line-through">₹{product.compareAtPrice}</span>
+                <span className="text-base tabular-nums text-muted line-through">₹{product.compareAtPrice}</span>
               )}
               <span className="text-sm text-muted">/ {product.unit}</span>
             </div>
