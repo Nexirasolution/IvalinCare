@@ -46,7 +46,7 @@ export default function AdminBannersPage() {
   function openEdit(b) {
     setEditingId(b._id);
     setForm({
-      title: b.title,
+      title: b.title || "",
       subtitle: b.subtitle || "",
       image: b.image?.url ? [b.image] : [],
       ctaText: b.ctaText || "",
@@ -60,8 +60,14 @@ export default function AdminBannersPage() {
 
   async function handleSave(e) {
     e.preventDefault();
-    setSaving(true);
     setError("");
+
+    if (!form.image[0]?.url) {
+      setError("Banner image is required.");
+      return;
+    }
+
+    setSaving(true);
     try {
       const payload = {
         title: form.title,
@@ -69,10 +75,11 @@ export default function AdminBannersPage() {
         ctaText: form.ctaText,
         ctaLink: form.ctaLink,
         isActive: form.isActive,
-        sortOrder: Number(form.sortOrder),
-        image: form.image[0]
-          ? { url: form.image[0].url, publicId: form.image[0].publicId }
-          : { url: "", publicId: "" },
+        sortOrder: Number(form.sortOrder) || 0,
+        image: {
+          url: form.image[0].url,
+          publicId: form.image[0].publicId || "",
+        },
       };
 
       const res = await fetch(editingId ? `/api/banners/${editingId}` : "/api/banners", {
@@ -152,7 +159,7 @@ export default function AdminBannersPage() {
                     {b.image?.url ? (
                       <Image
                         src={b.image.url}
-                        alt={b.title}
+                        alt={b.title || "Banner"}
                         width={200}
                         height={120}
                         className="h-full w-full object-cover"
@@ -165,13 +172,19 @@ export default function AdminBannersPage() {
                   </div>
 
                   <div className="min-w-0">
-                    <h2 className="font-display text-base font-bold text-ink truncate sm:text-lg">{b.title}</h2>
+                    <h2
+                      className={`font-display text-base font-bold truncate sm:text-lg ${
+                        b.title ? "text-ink" : "text-muted italic"
+                      }`}
+                    >
+                      {b.title || "Image-only banner"}
+                    </h2>
                     {b.subtitle && (
                       <p className="mt-1 line-clamp-2 text-xs text-muted sm:text-sm">{b.subtitle}</p>
                     )}
-                    {b.ctaText && (
+                    {(b.ctaText || b.ctaLink) && (
                       <p className="mt-1 truncate text-xs text-gold-dark font-medium">
-                        CTA: {b.ctaText} → {b.ctaLink || "(no link)"}
+                        CTA: {b.ctaText || "(no text)"} → {b.ctaLink || "(no link)"}
                       </p>
                     )}
                   </div>
@@ -217,28 +230,8 @@ export default function AdminBannersPage() {
         title={editingId ? "Edit Banner" : "Add Banner"}
       >
         <form onSubmit={handleSave} className="space-y-4">
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-ink/70">Title *</span>
-            <input
-              required
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full rounded-xl border border-gold/30 px-4 py-2.5 text-sm outline-none focus:border-forest"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-ink/70">Subtitle</span>
-            <textarea
-              rows={2}
-              value={form.subtitle}
-              onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
-              className="w-full rounded-xl border border-gold/30 px-4 py-2.5 text-sm outline-none focus:border-forest"
-            />
-          </label>
-
           <div>
-            <span className="mb-2 block text-xs font-semibold text-ink/70">Banner Image</span>
+            <span className="mb-2 block text-xs font-semibold text-ink/70">Banner Image *</span>
             <ImageUploader
               images={form.image}
               onChange={(imgs) => setForm({ ...form, image: imgs })}
@@ -247,9 +240,30 @@ export default function AdminBannersPage() {
             />
           </div>
 
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-ink/70">Title (optional)</span>
+            <input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="w-full rounded-xl border border-gold/30 px-4 py-2.5 text-sm outline-none focus:border-forest"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-semibold text-ink/70">Subtitle (optional)</span>
+            <textarea
+              rows={2}
+              value={form.subtitle}
+              onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+              className="w-full rounded-xl border border-gold/30 px-4 py-2.5 text-sm outline-none focus:border-forest"
+            />
+          </label>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-ink/70">CTA Button Text</span>
+              <span className="mb-1 block text-xs font-semibold text-ink/70">
+                CTA Button Text (optional)
+              </span>
               <input
                 value={form.ctaText}
                 onChange={(e) => setForm({ ...form, ctaText: e.target.value })}
@@ -259,7 +273,7 @@ export default function AdminBannersPage() {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-ink/70">CTA Link</span>
+              <span className="mb-1 block text-xs font-semibold text-ink/70">CTA Link (optional)</span>
               <input
                 value={form.ctaLink}
                 onChange={(e) => setForm({ ...form, ctaLink: e.target.value })}
@@ -270,7 +284,7 @@ export default function AdminBannersPage() {
           </div>
 
           <label className="block">
-            <span className="mb-1 block text-xs font-semibold text-ink/70">Sort Order</span>
+            <span className="mb-1 block text-xs font-semibold text-ink/70">Sort Order (optional)</span>
             <input
               type="number"
               value={form.sortOrder}

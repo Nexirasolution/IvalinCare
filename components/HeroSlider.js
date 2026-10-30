@@ -17,7 +17,8 @@ export default function HeroSlider() {
   useEffect(() => {
     fetch("/api/banners?activeOnly=true")
       .then((r) => r.json())
-      .then((data) => setSlides(data.banners || []))
+      .then((data) => setSlides((data.banners || []).filter((b) => b.image?.url)))
+      .catch(() => setSlides([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -49,55 +50,69 @@ export default function HeroSlider() {
         }}
         loop={slides.length > 1}
       >
-        {slides.map((slide, index) => (
-          <SwiperSlide key={slide._id || index}>
-            <div className="relative h-full w-full">
-              {slide.image?.url ? (
+        {slides.map((slide, index) => {
+          const hasText = Boolean(slide.title || slide.subtitle || slide.ctaText);
+
+          return (
+            <SwiperSlide key={slide._id || index}>
+              <div className="relative h-full w-full">
                 <Image
                   src={slide.image.url}
-                  alt={slide.title}
+                  alt={slide.title || "Banner"}
                   fill
                   priority={index === 0}
                   sizes="100vw"
                   className="object-cover"
                 />
-              ) : (
-                <div className="h-full w-full bg-champagne" />
-              )}
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
+                {/* Overlay + content only when there is text to show */}
+                {hasText && (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent" />
 
-              {/* Content */}
-              <div className="absolute inset-0 flex items-center">
-                <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
-                  <div className="max-w-xs sm:max-w-md md:max-w-xl">
-                    <h1 className="font-display text-3xl font-medium leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
-                      {slide.title}
-                    </h1>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="mx-auto w-full max-w-7xl px-5 md:px-8">
+                        <div className="max-w-xs sm:max-w-md md:max-w-xl">
+                          {slide.title && (
+                            <h1 className="font-display text-3xl font-medium leading-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
+                              {slide.title}
+                            </h1>
+                          )}
 
-                    {slide.subtitle && (
-                      <p className="mt-3 text-sm text-white/90 sm:text-base md:text-lg">
-                        {slide.subtitle}
-                      </p>
-                    )}
+                          {slide.subtitle && (
+                            <p className="mt-3 text-sm text-white/90 sm:text-base md:text-lg">
+                              {slide.subtitle}
+                            </p>
+                          )}
 
-                    {slide.ctaText && (
-                      <div className="mt-6 flex flex-wrap gap-3">
-                        <Link
-                          href={slide.ctaLink || "/products"}
-                          className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-forest-light md:px-8 md:py-3"
-                        >
-                          {slide.ctaText}
-                        </Link>
+                          {slide.ctaText && (
+                            <div className="mt-6 flex flex-wrap gap-3">
+                              <Link
+                                href={slide.ctaLink || "/products"}
+                                className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-forest-light md:px-8 md:py-3"
+                              >
+                                {slide.ctaText}
+                              </Link>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
+                  </>
+                )}
+
+                {/* If there's a link but no button text, make the whole banner clickable */}
+                {slide.ctaLink && !slide.ctaText && (
+                  <Link
+                    href={slide.ctaLink}
+                    aria-label={slide.title || "Open banner link"}
+                    className="absolute inset-0 z-10"
+                  />
+                )}
               </div>
-            </div>
-          </SwiperSlide>
-        ))}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
 
       <style jsx global>{`

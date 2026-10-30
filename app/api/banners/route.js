@@ -24,14 +24,17 @@ export async function POST(req) {
     await connectDB();
     const body = await req.json();
 
-    if (!body.title) {
-      return NextResponse.json({ error: "Title is required." }, { status: 400 });
+    if (!body.image?.url) {
+      return NextResponse.json({ error: "Banner image is required." }, { status: 400 });
     }
 
     const banner = await Banner.create({
-      title: body.title,
+      title: body.title || "",
       subtitle: body.subtitle || "",
-      image: body.image || { url: "", publicId: "" },
+      image: {
+        url: body.image.url,
+        publicId: body.image.publicId || "",
+      },
       ctaText: body.ctaText || "",
       ctaLink: body.ctaLink || "",
       isActive: body.isActive !== undefined ? body.isActive : true,

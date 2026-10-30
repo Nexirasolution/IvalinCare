@@ -21,6 +21,11 @@ export async function PUT(req, { params }) {
     const { id } = await params;
     const body = await req.json();
 
+    // If an image is being sent, it must have a URL (image can't be removed)
+    if (body.image !== undefined && !body.image?.url) {
+      return NextResponse.json({ error: "Banner image is required." }, { status: 400 });
+    }
+
     const banner = await Banner.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
