@@ -6,6 +6,7 @@ import Product from "@/models/Product";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import { CATEGORY_ICONS, LeafIcon } from "@/components/Icons";
 import HeroSlider from "@/components/HeroSlider";
 import { ArrowRight, Sparkles, Leaf, ShieldCheck, Truck as TruckIcon, Award } from "lucide-react";
@@ -49,8 +50,6 @@ export default async function HomePage() {
       <Navbar settings={settings} />
 
       <HeroSlider />
-
-  
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
@@ -208,7 +207,10 @@ export default async function HomePage() {
         </Link>
       </section>
 
-      <Footer />
+      {/* Floating WhatsApp button: sits above the mobile bottom nav, never over it */}
+      <WhatsAppButton />
+
+      <Footer settings={settings} />
     </>
   );
 }
